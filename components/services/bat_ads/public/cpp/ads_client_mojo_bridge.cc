@@ -264,6 +264,30 @@ void AdsClientMojoBridge::Log(
 }
 
 // static
+void AdsClientMojoBridge::OnLoadUserModelForId(
+    CallbackHolder<LoadCallback>* holder,
+    const ads::Result result,
+    const std::string& value) {
+  DCHECK(holder);
+
+  if (holder->is_valid()) {
+    std::move(holder->get()).Run(ToMojomResult(result), std::move(value));
+  }
+
+  delete holder;
+}
+
+void AdsClientMojoBridge::LoadUserModelForId(
+    const std::string& id,
+    LoadCallback callback) {
+  // this gets deleted in OnLoad
+  auto* holder =
+      new CallbackHolder<LoadCallback>(AsWeakPtr(), std::move(callback));
+  ads_client_->LoadUserModelForId(
+      id, std::bind(AdsClientMojoBridge::OnLoadUserModelForId, holder, _1, _2));
+}
+
+// static
 void AdsClientMojoBridge::OnLoad(
     CallbackHolder<LoadCallback>* holder,
     const ads::Result result,

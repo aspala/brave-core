@@ -105,6 +105,9 @@ class AdsClientMojoBridge
       const std::string& message) override;
   void SetIdleThreshold(
       const int32_t threshold) override;
+  void LoadUserModelForId(
+      const std::string& id,
+      LoadCallback callback) override;
   void Load(
       const std::string& name,
       LoadCallback callback) override;
@@ -167,6 +170,11 @@ class AdsClientMojoBridge
     base::WeakPtr<AdsClientMojoBridge> client_;
     Callback callback_;
   };
+
+  static void OnLoadUserModelForId(
+      CallbackHolder<LoadCallback>* holder,
+      const ads::Result result,
+      const std::string& value);
 
   static void OnLoad(
       CallbackHolder<LoadCallback>* holder,

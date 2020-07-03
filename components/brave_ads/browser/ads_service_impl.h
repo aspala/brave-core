@@ -25,6 +25,7 @@
 #include "brave/components/brave_ads/browser/ads_service.h"
 #include "brave/components/brave_ads/browser/background_helper.h"
 #include "brave/components/brave_ads/browser/notification_helper.h"
+#include "brave/components/brave_user_model/browser/user_model_file_service.h"
 #include "brave/components/services/bat_ads/public/interfaces/bat_ads.mojom.h"
 #include "brave/components/brave_rewards/browser/rewards_notification_service_observer.h"
 #include "chrome/browser/notifications/notification_handler.h"
@@ -37,6 +38,7 @@
 #include "ui/base/idle/idle.h"
 
 using brave_rewards::RewardsNotificationService;
+using brave_user_model::UserModelFileService;
 
 class NotificationDisplayService;
 class Profile;
@@ -61,6 +63,7 @@ class AdsServiceImpl : public AdsService,
                        public ads::AdsClient,
                        public history::HistoryServiceObserver,
                        BackgroundHelper::Observer,
+                       public brave_user_model::Observer,
                        public base::SupportsWeakPtr<AdsServiceImpl> {
  public:
   // AdsService implementation
@@ -158,6 +161,10 @@ class AdsServiceImpl : public AdsService,
   GetAutomaticallyDetectedAdsSubdivisionTargetingCode() const override;
   void SetAutomaticallyDetectedAdsSubdivisionTargetingCode(
       const std::string& subdivision_targeting_code) override;
+
+  // BraveUserModelInstaller::Observer implementation
+  void OnUserModelUpdated(
+      const std::string& id) override;
 
   // KeyedService implementation
   void Shutdown() override;
@@ -417,6 +424,9 @@ class AdsServiceImpl : public AdsService,
       const std::string& name,
       const std::string& value,
       ads::ResultCallback callback) override;
+  void LoadUserModelForId(
+      const std::string& id,
+      ads::LoadCallback callback) override;
   void Load(
       const std::string& name,
       ads::LoadCallback callback) override;

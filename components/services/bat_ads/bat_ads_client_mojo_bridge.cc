@@ -335,6 +335,25 @@ void BatAdsClientMojoBridge::Save(
       std::move(callback)));
 }
 
+void OnLoadUserModelForId(
+    const ads::LoadCallback& callback,
+    const int32_t result,
+    const std::string& value) {
+  callback(ToAdsResult(result), value);
+}
+
+void BatAdsClientMojoBridge::LoadUserModelForId(
+    const std::string& id,
+    ads::LoadCallback callback) {
+  if (!connected()) {
+    callback(ads::Result::FAILED, "");
+    return;
+  }
+
+  bat_ads_client_->LoadUserModelForId(id,
+      base::BindOnce(&OnLoadUserModelForId, std::move(callback)));
+}
+
 void OnLoad(
     const ads::LoadCallback& callback,
     const int32_t result,

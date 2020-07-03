@@ -91,6 +91,10 @@ void NativeAdsClient::Save(const std::string & name, const std::string & value, 
   [bridge_ save:name value:value callback:callback];
 }
 
+void NativeAdsClient::LoadUserModelForId(const std::string & id, ads::LoadCallback callback) {
+  [bridge_ loadUserModelForId:id callback:callback];
+}
+
 void NativeAdsClient::Load(const std::string & name, ads::LoadCallback callback) {
   [bridge_ load:name callback:callback];
 }

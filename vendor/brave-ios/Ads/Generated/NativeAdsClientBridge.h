@@ -22,6 +22,7 @@
 - (bool)canShowBackgroundNotifications;
 - (bool)isNetworkConnectionAvailable;
 - (bool)shouldShowNotifications;
+- (void)loadUserModelForId:(const std::string &)id callback:(ads::LoadCallback)callback;
 - (void)load:(const std::string &)name callback:(ads::LoadCallback)callback;
 - (std::string)loadJsonSchema:(const std::string &)name;
 - (void)loadUserModelForLanguage:(const std::string &)language callback:(ads::LoadCallback)callback;

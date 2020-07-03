@@ -98,10 +98,8 @@ AdsImpl::AdsImpl(AdsClient* ads_client)
       ad_conversions_(std::make_unique<AdConversions>(this)),
       database_(std::make_unique<database::Initialize>(this)),
       page_classifier_(std::make_unique<classification::PageClassifier>(this)),
-      purchase_intent_classifier_(std::make_unique<
-          classification::PurchaseIntentClassifier>(kPurchaseIntentSignalLevel,
-              kPurchaseIntentClassificationThreshold,
-                  kPurchaseIntentSignalDecayTimeWindow)),
+      purchase_intent_classifier_(
+          std::make_unique<classification::PurchaseIntentClassifier>()),
       is_initialized_(false),
       is_confirmations_ready_(false),
       ad_notifications_(std::make_unique<AdNotifications>(this)),
@@ -312,11 +310,13 @@ void AdsImpl::OnUserModelLoaded(
   auto language = client_->GetUserModelLanguage();
 
   if (result != SUCCESS) {
-    BLOG(0, "Failed to load user model for " << language << " language");
+    BLOG(0, "Failed to load page classification user model for "
+        << language << " language");
     return;
   }
 
-  BLOG(3, "Successfully loaded user model for " << language << " language");
+  BLOG(3, "Successfully loaded page classification user model for "
+      << language << " language");
 
   if (!page_classifier_->Initialize(json)) {
     BLOG(0, "Failed to initialize page classification user model for "
@@ -330,6 +330,41 @@ void AdsImpl::OnUserModelLoaded(
   if (!IsInitialized()) {
     InitializeStep6(SUCCESS);
   }
+}
+
+void AdsImpl::OnUserModelUpdated(
+    const std::string& id) {
+  if (id == kPurchaseIntentUserModelId) {
+    LoadPurchaseIntentUserModelForId(id);
+    return;
+  } else {
+    NOTREACHED();
+  }
+}
+
+void AdsImpl::LoadPurchaseIntentUserModelForId(
+    const std::string& id) {
+  auto callback =
+      std::bind(&AdsImpl::OnLoadPurchaseIntentUserModel, this, _1, _2);
+
+  ads_client_->LoadUserModelForId(id, callback);
+}
+
+void AdsImpl::OnLoadPurchaseIntentUserModel(
+    const Result result,
+    const std::string& json) {
+  if (result != SUCCESS) {
+    BLOG(0, "Failed to load purchase intent user model");
+    return;
+  }
+
+  BLOG(1, "Successfully loaded purchase intent user model");
+
+  purchase_intent_classifier_.reset(
+      new classification::PurchaseIntentClassifier());
+  purchase_intent_classifier_->Initialize(json);
+
+  BLOG(1, "Successfully initialized purchase intent user model");
 }
 
 bool AdsImpl::IsMobile() const {
@@ -647,6 +682,7 @@ void AdsImpl::ChangeLocale(
   }
 
   LoadUserModel();
+  LoadPurchaseIntentUserModelForId(kPurchaseIntentUserModelId);
 }
 
 void AdsImpl::OnAdsSubdivisionTargetingCodeHasChanged() {

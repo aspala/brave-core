@@ -218,6 +218,11 @@ class ADS_EXPORT Ads {
       const std::string& creative_set_id,
       const bool flagged) = 0;
 
+  // Should be called when user model has been updated in the
+  // |BraveUserModelInstaller| component
+  virtual void OnUserModelUpdated(
+      const std::string& id) = 0;
+
  private:
   // Not copyable, not assignable
   Ads(const Ads&) = delete;

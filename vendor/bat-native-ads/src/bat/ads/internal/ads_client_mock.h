@@ -100,6 +100,10 @@ class AdsClientMock : public AdsClient {
       const std::string& value,
       ResultCallback callback));
 
+  MOCK_METHOD2(LoadUserModelForId, void(
+      const std::string& id,
+      LoadCallback callback));
+
   MOCK_METHOD2(Load, void(
       const std::string& name,
       LoadCallback callback));

@@ -515,6 +515,12 @@ BATClassAdsBridge(BOOL, isDebug, setDebug, _is_debug)
 
 #pragma mark - File IO
 
+- (void)loadUserModelForId:(const std::string &)id callback:(ads::LoadCallback)callback
+{
+  // TODO(tmancey): Implement user model component updater
+  callback(ads::Result::FAILED, contents);
+}
+
 - (void)load:(const std::string &)name callback:(ads::LoadCallback)callback
 {
   const auto contents = [self.commonOps loadContentsFromFileWithName:name];
@@ -560,9 +566,9 @@ BATClassAdsBridge(BOOL, isDebug, setDebug, _is_debug)
   callback(ads::Result::SUCCESS, std::string(contents.UTF8String));
 }
 
-- (void)reset:(const std::string &)name callback:(ads::ResultCallback)callback
+- (void)reset:(const std::string &)path callback:(ads::ResultCallback)callback
 {
-  if ([self.commonOps removeFileWithName:name]) {
+  if ([self.commonOps removeFileAtPath:path]) {
     callback(ads::Result::SUCCESS);
   } else {
     callback(ads::Result::FAILED);

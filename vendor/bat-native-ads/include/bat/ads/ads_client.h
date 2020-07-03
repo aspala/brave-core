@@ -170,6 +170,12 @@ class ADS_EXPORT AdsClient {
       const std::string& value,
       ResultCallback callback) = 0;
 
+  // Should load user model for id from persistent storage. The callback takes 2
+  // arguments — |Result| should be set to |SUCCESS| if successful; otherwise,
+  // should be set to |FAILED|. |value| should contain the user model
+  virtual void LoadUserModelForId(
+      const std::string& name, LoadCallback callback) = 0;
+
   // Should load a value from persistent storage. The callback takes 2 arguments
   // — |Result| should be set to |SUCCESS| if successful; otherwise, should be
   // set to |FAILED|. |value| should contain the persisted value

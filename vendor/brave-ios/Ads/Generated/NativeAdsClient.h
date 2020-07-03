@@ -37,6 +37,7 @@ class NativeAdsClient : public ads::AdsClient {
   void URLRequest(const std::string & url, const std::vector<std::string> & headers, const std::string & content, const std::string & content_type, const ads::URLRequestMethod method, ads::URLRequestCallback callback) override;
   void Save(const std::string & name, const std::string & value, ads::ResultCallback callback) override;
   void Load(const std::string & name, ads::LoadCallback callback) override;
+  void LoadUserModelForId(const std::string & id, ads::LoadCallback callback) override;
   void Reset(const std::string & name, ads::ResultCallback callback) override;
   std::string LoadJsonSchema(const std::string & name) override;
   void Log(const char * file, const int line, const int verbose_level, const std::string & message) override;

@@ -10,7 +10,10 @@
 
 #include "base/bind.h"
 #include "base/command_line.h"
+#include "base/files/file_path.h"
 #include "base/files/file_util.h"
+#include "base/path_service.h"
+#include "chrome/common/chrome_paths.h"
 #include "base/files/important_file_writer.h"
 #include "base/guid.h"
 #include "base/logging.h"
@@ -41,6 +44,7 @@
 #include "brave/components/services/bat_ads/public/interfaces/bat_ads.mojom.h"
 #include "brave/components/brave_ads/browser/notification_helper.h"
 #include "chrome/browser/browser_process.h"
+#include "brave/browser/brave_browser_process_impl.h"
 #include "chrome/browser/notifications/notification_display_service.h"
 #include "chrome/browser/profiles/profile_manager.h"
 #include "chrome/browser/profiles/profile.h"
@@ -243,11 +247,25 @@ AdsServiceImpl::AdsServiceImpl(Profile* profile) :
   MaybeShowOnboarding();
 #endif
 
+  g_brave_browser_process->user_model_file_service()->AddObserver(this);
+
   MaybeStart(false);
 }
 
 AdsServiceImpl::~AdsServiceImpl() {
   file_task_runner_->DeleteSoon(FROM_HERE, database_.release());
+  g_brave_browser_process->user_model_file_service()->RemoveObserver(this);
+}
+
+void AdsServiceImpl::OnUserModelUpdated(
+    const std::string& id) {
+  if (!connected()) {
+    return;
+  }
+
+  VLOG(1) << id << " user model updated";
+
+  bat_ads_->OnUserModelUpdated(id);
 }
 
 bool AdsServiceImpl::IsSupportedLocale() const {
@@ -1984,14 +2002,29 @@ void AdsServiceImpl::Save(
   writer.WriteNow(std::make_unique<std::string>(value));
 }
 
+void AdsServiceImpl::LoadUserModelForId(
+    const std::string& id,
+    ads::LoadCallback callback) {
+  const base::Optional<base::FilePath> path =
+      g_brave_browser_process->user_model_file_service()->GetPath(id);
+  if (!path) {
+    callback(ads::Result::FAILED, "");
+    return;
+  }
+
+  base::PostTaskAndReplyWithResult(file_task_runner_.get(), FROM_HERE,
+      base::BindOnce(&LoadOnFileTaskRunner, path.value()),
+      base::BindOnce(&AdsServiceImpl::OnLoaded, AsWeakPtr(),
+          std::move(callback)));
+}
+
 void AdsServiceImpl::Load(
     const std::string& name,
     ads::LoadCallback callback) {
   base::PostTaskAndReplyWithResult(file_task_runner_.get(), FROM_HERE,
       base::BindOnce(&LoadOnFileTaskRunner, base_path_.AppendASCII(name)),
       base::BindOnce(&AdsServiceImpl::OnLoaded,
-                     AsWeakPtr(),
-                     std::move(callback)));
+          AsWeakPtr(), std::move(callback)));
 }
 
 void AdsServiceImpl::Reset(

@@ -135,6 +135,9 @@ class AdsService : public KeyedService {
 
   virtual void ResetTheWholeState(
       const base::Callback<void(bool)>& callback) = 0;
+
+  virtual void OnUserModelUpdated(
+      const std::string& id) = 0;
 };
 
 }  // namespace brave_ads
